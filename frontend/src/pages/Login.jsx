@@ -39,16 +39,25 @@ export function Login({ setUser }) {
         <div className="login-brand">
           <div className="brand-content">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
               <div className="brand-logo">WA</div>
-              <h1 className="text-h1 mt-6" style={{ color: 'white' }}>Automate Your World</h1>
-              <p className="text-lg mt-4" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                The modern, highly dynamic SaaS platform for building and managing 
-                complex workflows seamlessly. Join thousands of users optimizing their daily operations.
+              <h1 className="text-h1 mt-8 text-primary-text font-bold">Intelligent Workflows.</h1>
+              <h1 className="text-h1 mt-2 text-primary-text font-bold opacity-70">Seamless Execution.</h1>
+              <p className="text-lg mt-6 text-muted max-w-md leading-relaxed">
+                The modern SaaS platform for orchestrating complex business logic dynamically. Scale your operations with an intuitive visual node builder and robust execution engine.
               </p>
+              
+              <div className="mt-12 flex items-center gap-4">
+                 <div className="flex -space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-blue-800">JH</div>
+                    <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-green-800">AK</div>
+                    <div className="w-10 h-10 rounded-full bg-purple-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-purple-800">SM</div>
+                 </div>
+                 <div className="text-sm font-medium text-muted">Join 10,000+ Teams</div>
+              </div>
             </motion.div>
           </div>
           <div className="brand-bg-pattern"></div>
@@ -58,9 +67,9 @@ export function Login({ setUser }) {
         <div className="login-form-container">
           <motion.div 
             className="login-form-wrapper"
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
           >
             <div className="mb-8">
               <h2 className="text-h2">Welcome back</h2>

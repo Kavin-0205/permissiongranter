@@ -3,47 +3,46 @@
   width: 100vw;
   display: flex;
   background-color: var(--bg-primary);
+  overflow: hidden;
 }
 
 .login-container {
   display: flex;
   width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  box-shadow: var(--shadow-2xl);
+  height: 100%;
 }
 
-/* Left side styling - Brand */
+/* Left side styling - Brand Showcase */
 .login-brand {
-  flex: 1;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  flex: 1.2;
+  background: var(--bg-secondary);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4rem;
+  border-right: 1px solid var(--border-color);
 }
 
 .brand-content {
   position: relative;
   z-index: 10;
-  max-width: 480px;
+  max-width: 540px;
 }
 
 .brand-logo {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: var(--radius-lg);
+  width: 56px;
+  height: 56px;
+  background: var(--primary);
+  border-radius: var(--radius-xl);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 800;
+  font-size: 1.25rem;
+  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent);
 }
 
 .brand-bg-pattern {
@@ -52,10 +51,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 2px, transparent 2px);
-  background-size: 30px 30px;
-  opacity: 0.5;
+  background-image: 
+    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
   z-index: 1;
+  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+}
+
+.dark .brand-bg-pattern {
+  opacity: 0.1;
 }
 
 /* Right side styling - Form */
@@ -65,59 +72,45 @@
   align-items: center;
   justify-content: center;
   background-color: var(--bg-primary);
-  padding: 2rem;
+  padding: 3rem;
+  box-shadow: -20px 0 50px -20px rgba(0,0,0,0.05);
+  z-index: 20;
+}
+
+.dark .login-form-container {
+  box-shadow: -20px 0 50px -20px rgba(0,0,0,0.5);
 }
 
 .login-form-wrapper {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
 }
 
-/* Role Selector Demo specific */
-.role-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1.5rem 1rem;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-  cursor: pointer;
-}
-
-.role-btn:hover {
-  border-color: var(--primary-light);
-  background-color: var(--hover-bg);
-}
-
-.role-btn.active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
-}
-
-/* Utilities */
+/* Base utilities */
 .hover-underline:hover {
   text-decoration: underline;
 }
 
 .custom-checkbox {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
   border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
   accent-color: var(--primary);
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 /* Mobile responsiveness */
-@media (max-width: 900px) {
+@media (max-width: 960px) {
+  .login-container {
+    flex-direction: column;
+  }
   .login-brand {
-    display: none;
+    display: none; /* Hide illustrative side on small screens */
+  }
+  .login-form-container {
+    padding: 2rem;
   }
 }
