@@ -5,6 +5,7 @@ import { Layout } from './components/layout/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserDashboard } from './pages/user/Dashboard';
 import { WorkflowList } from './pages/user/WorkflowList';
 import { WorkflowEditor } from './pages/user/WorkflowEditor';
@@ -49,7 +50,7 @@ export default function App() {
         user?.role === 'admin' ? <Layout user={user} setUser={setUser} title="Admin Workspace" /> : <Navigate to="/login" replace />
       }>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard" element={<div><h2 className="text-h3 mb-4">Admin Home</h2><p>Here we will build the Workflow System Dashboard</p></div>} />
+        <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="workflows" element={<WorkflowList adminMode={true} />} />
         <Route path="editor" element={<WorkflowEditor />} />
         <Route path="editor/:id" element={<WorkflowEditor />} />

@@ -25,6 +25,22 @@ export const getAnalytics = async (req, res, next) => {
     const health = totalExecutions > 0 ? ((totalExecutions - failedExecutions) / totalExecutions) * 100 : 100;
 
     const activeUsers = await User.countDocuments();
+    
+    // Aggregate requests by department
+    // We'll aggregate from Execution payloadData.department first, then fallback to requester's department if available
+    const allExecutions = await Execution.find().populate('requesterId', 'department');
+    const deptStats = {};
+    const statusStats = { completed: 0, failed: 0, in_progress: 0, paused: 0 };
+
+    allExecutions.forEach(ex => {
+      const dept = ex.payloadData?.department || ex.requesterId?.department || 'Unassigned';
+      deptStats[dept] = (deptStats[dept] || 0) + 1;
+
+      if (ex.status === 'completed') statusStats.completed++;
+      else if (['failed', 'canceled'].includes(ex.status)) statusStats.failed++;
+      else if (ex.status === 'paused_for_approval') statusStats.paused++;
+      else statusStats.in_progress++;
+    });
 
     res.json({
       totalExecutions,
@@ -33,7 +49,9 @@ export const getAnalytics = async (req, res, next) => {
       failedExecutions,
       avgCompletionTimeMs: avgTimeMs,
       systemHealth: health.toFixed(2),
-      activeUsers
+      activeUsers,
+      requestsByDepartment: Object.entries(deptStats).map(([name, count]) => ({ name, count })),
+      statusBreakdown: statusStats
     });
   } catch (error) {
     next(error);

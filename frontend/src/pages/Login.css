@@ -2,27 +2,55 @@
   min-height: 100vh;
   width: 100vw;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: 
+    radial-gradient(circle at 15% 50%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 50%),
+    radial-gradient(circle at 85% 30%, color-mix(in srgb, var(--secondary) 15%, transparent), transparent 50%);
   background-color: var(--bg-primary);
   overflow: hidden;
+  position: relative;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAiLz4KPHBhdGggZD0iTTAgMEw0IDRaTTAgNEw0IDBaIiBzdHJva2U9IiMwMDAiIHN0cm9rZS1vcGFjaXR5PSIwLjAyIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+') repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.dark .login-page::before {
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAiLz4KPHBhdGggZD0iTTAgMEw0IDRaTTAgNEw0IDBaIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIwLjAyIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+') repeat;
 }
 
 .login-container {
   display: flex;
   width: 100%;
-  height: 100%;
+  max-width: 1000px;
+  min-height: 600px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  animation: slideUpFade 0.6s var(--spring-transition);
 }
 
-/* Left side styling - Brand Showcase */
 .login-brand {
   flex: 1.2;
-  background: var(--bg-secondary);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent);
   position: relative;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4rem;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--glass-border);
 }
 
 .brand-content {
@@ -32,69 +60,43 @@
 }
 
 .brand-logo {
-  width: 56px;
-  height: 56px;
-  background: var(--primary);
+  width: 64px;
+  height: 64px;
+  background: var(--primary-gradient);
   border-radius: var(--radius-xl);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--primary) 50%, transparent);
+  margin-bottom: 2rem;
 }
 
-.brand-bg-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.3;
-  z-index: 1;
-  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-}
-
-.dark .brand-bg-pattern {
-  opacity: 0.1;
-}
-
-/* Right side styling - Form */
 .login-form-container {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-primary);
   padding: 3rem;
-  box-shadow: -20px 0 50px -20px rgba(0,0,0,0.05);
-  z-index: 20;
-}
-
-.dark .login-form-container {
-  box-shadow: -20px 0 50px -20px rgba(0,0,0,0.5);
+  background: transparent;
 }
 
 .login-form-wrapper {
   width: 100%;
-  max-width: 440px;
+  max-width: 400px;
 }
 
-/* Base utilities */
 .hover-underline:hover {
   text-decoration: underline;
+  color: var(--primary);
 }
 
 .custom-checkbox {
   width: 18px;
   height: 18px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-tertiary);
   accent-color: var(--primary);
@@ -102,15 +104,15 @@
   transition: all var(--transition-fast);
 }
 
-/* Mobile responsiveness */
 @media (max-width: 960px) {
   .login-container {
     flex-direction: column;
+    max-width: 500px;
   }
   .login-brand {
-    display: none; /* Hide illustrative side on small screens */
+    display: none;
   }
   .login-form-container {
-    padding: 2rem;
+    padding: 2.5rem;
   }
 }

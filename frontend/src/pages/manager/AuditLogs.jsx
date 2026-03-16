@@ -4,6 +4,7 @@ import { Card, CardContent } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Input } from '../../components/ui/Input';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../../components/ui/Button';
 import { apiClient } from '../../api/client';
 
 export function AuditLogs() {
@@ -54,7 +55,13 @@ export function AuditLogs() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" icon={<Filter size={18} />}>Filter Date</Button>
+        <Button 
+          variant="outline" 
+          icon={<Filter size={18} />}
+          onClick={() => alert('Search-based filtering is active. Date range selection available in next release.')}
+        >
+          Filter Date
+        </Button>
       </div>
 
       <Card className="border-color">
@@ -112,20 +119,5 @@ export function AuditLogs() {
         )}
       </Card>
     </div>
-  );
-}
-
-// Inline mock Button/Badge for AuditLogs to avoid deep imports if not exported from components/ui
-function Button({ children, variant="primary", className="", icon, onClick }) {
-  const base = "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
-  const variants = {
-    primary: "bg-primary text-white hover:bg-primary-dark shadow-sm border border-transparent",
-    outline: "bg-transparent text-primary-text border border-color hover:border-primary hover:text-primary",
-    ghost: "bg-transparent text-muted hover:text-primary-text hover:bg-secondary border border-transparent",
-  };
-  return (
-    <button className={`${base} ${variants[variant]} ${className}`} onClick={onClick}>
-      {icon} {children}
-    </button>
   );
 }

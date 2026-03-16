@@ -1,6 +1,13 @@
 import express from 'express';
-import { getExecutions, createExecution, getExecutionById, cancelExecution, processApproval } from '../controllers/executionController.js';
-import { protect, ensureManager } from '../middleware/auth.js';
+import { 
+  getExecutions, 
+  createExecution, 
+  getExecutionById, 
+  cancelExecution, 
+  processApproval,
+  retryExecution
+} from '../controllers/executionController.js';
+import { protect, ensureManager, ensureAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -9,6 +16,9 @@ router.route('/')
 
 router.route('/:workflowId')
   .post(protect, createExecution);
+
+router.route('/:id/retry')
+  .put(protect, ensureAdmin, retryExecution);
 
 router.route('/:id')
   .get(protect, getExecutionById);

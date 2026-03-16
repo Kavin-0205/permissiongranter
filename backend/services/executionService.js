@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import Execution from '../models/Execution.js';
 import ExecutionLog from '../models/ExecutionLog.js';
 import Step from '../models/Step.js';
@@ -5,22 +6,48 @@ import Rule from '../models/Rule.js';
 import Workflow from '../models/Workflow.js';
 import { evaluateRule } from './ruleEngine.js';
 
+/**
+ * Dynamically constructs a Zod schema from the workflow inputSchema
+ */
+const validatePayload = (schema, data) => {
+  if (!schema || Object.keys(schema).length === 0) return data;
+
+  const shape = {};
+  Object.keys(schema).forEach(key => {
+    const type = schema[key];
+    if (type === 'number') shape[key] = z.number();
+    else if (type === 'boolean') shape[key] = z.boolean();
+    else shape[key] = z.string();
+  });
+
+  const zodSchema = z.object(shape);
+  return zodSchema.parse(data);
+};
+
 export const startExecution = async (workflowId, requesterId, payloadData) => {
-  // Find workflow
   const workflow = await Workflow.findById(workflowId);
   if (!workflow || workflow.isDeleted) throw new Error('Workflow not found or deleted');
   
-  // Here we would validate payloadData against workflow.inputSchema using Zod/Joi dynamically.
-  // For simplicity MVP we will assume payload isValid.
+  // Enterprise-grade Payload Validation
+  let validatedPayload = payloadData;
+  try {
+    validatedPayload = validatePayload(workflow.inputSchema, payloadData);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      throw new Error(`Invalid data: ${err.errors.map(e => `${e.path}: ${e.message}`).join(', ')}`);
+    }
+    throw err;
+  }
   
   if (!workflow.startStepId) throw new Error('Workflow has no starting step configured');
 
   const execution = await Execution.create({
     workflowId,
     requesterId,
-    payloadData,
+    payloadData: validatedPayload,
     status: 'in_progress',
-    currentStepId: workflow.startStepId
+    currentStepId: workflow.startStepId,
+    priority: payloadData.priority || 'medium'
   });
 
   await ExecutionLog.create({
@@ -30,7 +57,7 @@ export const startExecution = async (workflowId, requesterId, payloadData) => {
     actorId: requesterId
   });
 
-  // Start the runner async (fire & forget for background processing in a real system)
+  // Start the runner async
   runNextStep(execution._id).catch(console.error);
 
   return execution;
@@ -135,6 +162,9 @@ export const runNextStep = async (executionId) => {
     // Update execution ptr
     execution.currentStepId = nextStepId;
     await execution.save();
+    
+    // Refresh execution from DB for next iteration
+    execution = await Execution.findById(executionId);
   }
 
   if (iterations >= MAX_ITERATIONS) {
@@ -170,18 +200,33 @@ export const resumeExecution = async (executionId, approverId, decision, comment
     return execution;
   }
 
-  // If approved, we must evaluate rules to find the next step 
-  // (In a real system, the approval result would append to payload and be evaluated)
   const rules = await Rule.find({ stepId: step._id }).sort({ priority: 1 });
   let nextStepId = rules.find(r => r.isFallback)?.nextStepId || null;
   
-  // Since we don't have true payload injection for the approval itself right now, we just map fallback 
-  // or default next step
   execution.currentStepId = nextStepId;
   execution.status = 'in_progress';
   await execution.save();
 
-  // Resume loop
+  runNextStep(execution._id).catch(console.error);
+  return execution;
+};
+
+export const retryExecution = async (executionId, actorId) => {
+  const execution = await Execution.findById(executionId);
+  if (!execution || execution.status !== 'failed') {
+    throw new Error('Only failed executions can be retried');
+  }
+
+  execution.status = 'in_progress';
+  await execution.save();
+
+  await ExecutionLog.create({
+    executionId: execution._id,
+    action: 'Execution Retried',
+    details: 'System attempting to resume from last failed step pointer.',
+    actorId
+  });
+
   runNextStep(execution._id).catch(console.error);
   return execution;
 };

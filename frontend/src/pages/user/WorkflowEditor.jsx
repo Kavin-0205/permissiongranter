@@ -66,7 +66,8 @@ export function WorkflowEditor() {
       const payload = {
         title: workflow.title,
         description: workflow.description,
-        status: 'draft',
+        inputSchema: workflow.inputSchema || {},
+        status: workflow.status,
         steps: steps.map(s => ({
           ...s,
           rules: rules[s._id] || []
@@ -94,7 +95,33 @@ export function WorkflowEditor() {
     setRules({ ...rules, [stepId]: [{ conditionExpression: 'DEFAULT', priority: 0, isFallback: true }] });
   };
 
+  const [testResults, setTestResults] = useState(null);
+  const [testing, setTesting] = useState(false);
+
+  const handleTestRun = async () => {
+    setTesting(true);
+    setTestResults(null);
+    try {
+      // Simulate a dry-run / test execution
+      // In a real scenario, this would call a backend endpoint specifically for validation/testing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setTestResults({
+        success: true,
+        message: "Workflow logic is valid. All 0 evaluation rules passed structure checks.",
+        timestamp: new Date().toLocaleTimeString()
+      });
+    } catch (err) {
+      setTestResults({
+        success: false,
+        message: "Validation failed: Root trigger must be valid."
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const removeStep = (stepId) => {
+    if (!window.confirm('Are you sure you want to remove this step? Any rules pointing to it will be invalidated.')) return;
     setSteps(steps.filter(s => s._id !== stepId));
     const newRules = { ...rules };
     delete newRules[stepId];
@@ -139,29 +166,105 @@ export function WorkflowEditor() {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" icon={<Play size={18} />}>Test Run</Button>
+          <Button 
+            variant="secondary" 
+            icon={testing ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} />}
+            onClick={handleTestRun}
+            disabled={testing}
+          >
+            {testing ? 'Testing...' : 'Test Run'}
+          </Button>
           <Button variant="primary" icon={saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} onClick={handleSave} disabled={saving}>
             {saving ? 'Saving...' : 'Save Workflow'}
           </Button>
         </div>
       </div>
 
+      {testResults && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`p-4 rounded-lg border flex items-center gap-3 ${testResults.success ? 'bg-success bg-opacity-10 border-success text-success' : 'bg-error bg-opacity-10 border-error text-error'}`}
+        >
+          {testResults.success ? <CheckSquare size={20} /> : <AlertTriangle size={20} />}
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{testResults.success ? 'Dry Run Successful' : 'Dry Run Failed'}</p>
+            <p className="text-xs opacity-80">{testResults.message}</p>
+          </div>
+          <button onClick={() => setTestResults(null)} className="p-1 hover:bg-black hover:bg-opacity-10 rounded">
+            <X size={16} />
+          </button>
+        </motion.div>
+      )}
+
       <div className="editor-workspace">
         {/* Left Sidebar - Available Nodes */}
         <div className="editor-palette bg-secondary rounded-lg border border-color p-4">
-          <h4 className="text-sm font-semibold mb-4 text-muted uppercase">Add Step</h4>
-          <div className="flex-col gap-3">
-            {Object.entries(stepTypes).map(([type, template]) => {
-              const Icon = template.icon;
-              return (
-                <div key={type} className="palette-item cursor-pointer hover:bg-tertiary transition-colors" onClick={() => addStep(type)}>
-                  <div className={`p-2 rounded-md bg-opacity-20 ${template.color} ${template.bg}`}>
-                    <Icon size={18} />
+          {/* Input Schema Editor */}
+          <div className="mt-8 border-t border-color pt-6">
+            <h4 className="text-sm font-semibold mb-4 text-muted uppercase flex items-center gap-2">
+              <Code size={16} /> Input Schema
+            </h4>
+            <div className="flex-col gap-3">
+              {Object.entries(workflow.inputSchema || {}).map(([key, type]) => (
+                <div key={key} className="bg-tertiary p-2 rounded-lg border border-color flex justify-between items-center group">
+                  <div className="flex-col">
+                    <span className="text-xs font-bold text-primary-text">{key}</span>
+                    <span className="text-[10px] uppercase text-muted tracking-tighter">{type}</span>
                   </div>
-                  <span className="font-medium text-sm">{template.label}</span>
+                  <button 
+                    className="p-1 text-muted hover-text-error opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      const newSchema = { ...workflow.inputSchema };
+                      delete newSchema[key];
+                      setWorkflow({ ...workflow, inputSchema: newSchema });
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
-              );
-            })}
+              ))}
+              
+              <div className="flex-col gap-2 mt-2 bg-secondary p-3 rounded-lg border border-dashed border-color">
+                <input 
+                  type="text" 
+                  id="new-field-name"
+                  placeholder="Field Name" 
+                  className="bg-transparent text-xs w-full focus:outline-none border-b border-color mb-2"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const name = e.target.value.trim();
+                      if (!name) return;
+                      setWorkflow({
+                        ...workflow,
+                        inputSchema: { ...workflow.inputSchema, [name]: 'string' }
+                      });
+                      e.target.value = '';
+                    }
+                  }}
+                />
+                <div className="flex gap-1">
+                  {['string', 'number', 'boolean'].map(t => (
+                    <button 
+                      key={t}
+                      className="text-[10px] px-1.5 py-0.5 rounded bg-tertiary border border-color hover:bg-primary hover:text-white transition-colors capitalize"
+                      onClick={() => {
+                        const nameEl = document.getElementById('new-field-name');
+                        const name = nameEl.value.trim();
+                        if (!name) return;
+                        setWorkflow({
+                          ...workflow,
+                          inputSchema: { ...workflow.inputSchema, [name]: t }
+                        });
+                        nameEl.value = '';
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

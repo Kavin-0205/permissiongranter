@@ -35,7 +35,7 @@ export function WorkflowRunner() {
         initialData.reason = '';
       }
       
-      setFormData(initialData);
+      setFormData({ ...initialData, priority: 'medium' });
     } catch (err) {
       console.error(err);
     } finally {
@@ -89,9 +89,30 @@ export function WorkflowRunner() {
 
         {/* Dynamic Form */}
         <form onSubmit={handleSubmit} className="p-8 flex-col gap-6">
-          <h3 className="text-lg font-semibold border-b border-color pb-2 mb-2">Request Details</h3>
+          <div className="flex justify-between items-center border-b border-color pb-2 mb-2">
+            <h3 className="text-lg font-semibold">Request Details</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-muted uppercase">Priority:</span>
+              <div className="flex bg-tertiary p-1 rounded-lg border border-color">
+                {['low', 'medium', 'high'].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, priority: p })}
+                    className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase transition-all ${
+                      formData.priority === p 
+                        ? (p === 'high' ? 'bg-error text-white' : p === 'medium' ? 'bg-warning text-white' : 'bg-primary text-white')
+                        : 'text-muted hover:text-primary-text'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
           
-          {Object.keys(formData).map((key) => (
+          {Object.keys(formData).filter(k => k !== 'priority').map((key) => (
             <div key={key} className="flex-col gap-2">
               <label className="text-sm font-medium text-muted capitalize">
                 {key.replace(/([A-Z])/g, ' $1').trim()}

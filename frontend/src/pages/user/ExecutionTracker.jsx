@@ -78,9 +78,17 @@ export function ExecutionTracker() {
                 {ex.status.replace(/_/g, ' ')}
               </Badge>
             </div>
-            <p className="text-xs text-muted mb-1">
-              Started: {new Date(ex.createdAt).toLocaleDateString()}
-            </p>
+            <div className="flex justify-between items-center mb-2">
+               <Badge variant={
+                 ex.priority === 'high' ? 'error' : 
+                 ex.priority === 'medium' ? 'warning' : 'neutral'
+               }>
+                 {ex.priority || 'medium'}
+               </Badge>
+               <p className="text-xs text-muted">
+                 Started: {new Date(ex.createdAt).toLocaleDateString()}
+               </p>
+            </div>
           </div>
         ))}
       </div>
@@ -91,13 +99,38 @@ export function ExecutionTracker() {
           <Card className="shadow-lg border-color overflow-hidden">
             <div className="bg-gradient-to-r from-secondary to-tertiary p-6 border-b border-color flex justify-between items-center">
               <div>
-                <h2 className="text-h2 font-bold mb-1">{activeExecution.workflowId?.title}</h2>
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-h2 font-bold m-0">{activeExecution.workflowId?.title}</h2>
+                  <Badge variant={
+                    activeExecution.priority === 'high' ? 'error' : 
+                    activeExecution.priority === 'medium' ? 'warning' : 'neutral'
+                  }>
+                    {activeExecution.priority || 'medium'}
+                  </Badge>
+                </div>
                 <p className="text-sm text-muted">ID: {activeExecution._id}</p>
               </div>
               <div className="flex items-center gap-4">
                 <Button variant="outline" size="sm" onClick={() => fetchExecutionDetails(activeExecution._id)} disabled={refreshing}>
                   <RefreshCw size={16} className={refreshing ? "animate-spin mr-2" : "mr-2"} /> Refresh
                 </Button>
+                {activeExecution.status === 'failed' && (
+                  <Button 
+                    variant="primary" 
+                    size="sm" 
+                    onClick={async () => {
+                      if (!window.confirm('Attempt to resume execution from last point?')) return;
+                      try {
+                        await apiClient.put(`/executions/${activeExecution._id}/retry`);
+                        fetchExecutionDetails(activeExecution._id);
+                      } catch (err) {
+                        alert('Retry failed: ' + (err.response?.data?.message || err.message));
+                      }
+                    }}
+                  >
+                    <RefreshCw size={16} className="mr-2" /> Retry
+                  </Button>
+                )}
                 <div className="text-right">
                   <span className="text-xs text-muted block mb-1">Current Status</span>
                   <Badge variant={activeExecution.status === 'completed' ? 'success' : 'warning'}>

@@ -100,11 +100,24 @@ export function ManagerDashboard() {
           <div className="p-8 text-center text-muted">No pending approvals at this time.</div>
         ) : (
           <div className="flex-col">
-             {recentApprovals.map((req, idx) => (
+             {recentApprovals
+               .sort((a, b) => {
+                 const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+                 const priorityA = priorityOrder[a.priority] || 2; // Default to medium if not specified
+                 const priorityB = priorityOrder[b.priority] || 2; // Default to medium if not specified
+                 return priorityB - priorityA; // Descending order (High first)
+               })
+               .map((req, idx) => (
                <div key={req._id} className={`p-4 md:p-6 flex justify-between items-center hover:bg-tertiary transition-colors ${idx !== recentApprovals.length - 1 ? 'border-b border-color' : ''}`}>
                  <div>
                    <div className="flex items-center gap-3 mb-1">
                      <span className="font-semibold text-primary-text">{req.workflowId?.title || 'Unknown'}</span>
+                     <Badge variant={
+                       req.priority === 'high' ? 'error' : 
+                       req.priority === 'medium' ? 'warning' : 'neutral'
+                     }>
+                       {req.priority || 'medium'}
+                     </Badge>
                      <Badge variant="warning">Awaiting Approval</Badge>
                    </div>
                    <p className="text-sm text-muted">

@@ -10,6 +10,11 @@ const executionSchema = new mongoose.Schema({
     default: 'pending' 
   },
   currentStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step' },
+  priority: { 
+    type: String, 
+    enum: ['low', 'medium', 'high'], 
+    default: 'medium' 
+  },
 }, { timestamps: true });
 
 // Optimize query performance for execution dashboards and analytics

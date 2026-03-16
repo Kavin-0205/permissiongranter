@@ -1,6 +1,18 @@
 import Execution from '../models/Execution.js';
 import ExecutionLog from '../models/ExecutionLog.js';
-import { startExecution, runNextStep, resumeExecution } from '../services/executionService.js';
+import { startExecution, runNextStep, resumeExecution, retryExecution as retryExecutionService } from '../services/executionService.js';
+
+// @desc    Retry a failed execution
+// @route   PUT /api/executions/:id/retry
+// @access  Private/Admin
+export const retryExecution = async (req, res, next) => {
+  try {
+    const execution = await retryExecutionService(req.params.id, req.user._id);
+    res.json(execution);
+  } catch (error) {
+    next(error);
+  }
+};
 
 // @desc    Get all executions for a user (or all if admin/manager)
 // @route   GET /api/executions

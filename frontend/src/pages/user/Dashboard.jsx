@@ -114,6 +114,7 @@ export function UserDashboard({ user }) {
                 <thead>
                   <tr className="bg-primary bg-opacity-5 border-b border-color text-sm text-primary-text">
                     <th className="p-5 font-bold">Workflow</th>
+                    <th className="p-5 font-bold">Priority</th>
                     <th className="p-5 font-bold">Submitted Date</th>
                     <th className="p-5 font-bold">Current Step</th>
                     <th className="p-5 font-bold">Status</th>
@@ -121,9 +122,22 @@ export function UserDashboard({ user }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentRequests.map(req => (
+                  {[...recentRequests]
+                    .sort((a, b) => {
+                      const order = { high: 0, medium: 1, low: 2 };
+                      return order[a.priority || 'medium'] - order[b.priority || 'medium'];
+                    })
+                    .map(req => (
                     <tr key={req._id} className="border-b border-color border-opacity-50 hover:bg-primary hover:bg-opacity-5 transition-colors">
                       <td className="p-5 font-semibold text-primary">{req.workflowId?.title || 'Unknown Workflow'}</td>
+                      <td className="p-5">
+                        <Badge variant={
+                          req.priority === 'high' ? 'error' : 
+                          req.priority === 'medium' ? 'warning' : 'neutral'
+                        }>
+                          {req.priority || 'medium'}
+                        </Badge>
+                      </td>
                       <td className="p-5 text-sm text-muted">{new Date(req.createdAt).toLocaleDateString()}</td>
                       <td className="p-5 text-sm text-muted font-medium bg-secondary bg-opacity-50 rounded inline-block mt-3">{req.currentStepId?.name || 'End'}</td>
                       <td className="p-5">

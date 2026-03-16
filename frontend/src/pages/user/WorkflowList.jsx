@@ -77,7 +77,13 @@ export function WorkflowList({ adminMode = false }) {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" icon={<Filter size={18} />}>Filter</Button>
+        <Button 
+          variant="outline" 
+          icon={<Filter size={18} />}
+          onClick={() => alert('Search-based filtering is active. Status filters coming soon!')}
+        >
+          Filter
+        </Button>
       </div>
 
       {loading ? (
@@ -135,7 +141,12 @@ export function WorkflowList({ adminMode = false }) {
                         />
                       </>
                     ) : (
-                      <Button variant="primary" icon={<Play size={16} />} className="w-full justify-center">
+                      <Button 
+                        variant="primary" 
+                        icon={<Play size={16} />} 
+                        className="w-full justify-center"
+                        onClick={() => navigate(`/user/workflows/${workflow._id}/start`)}
+                      >
                         Start Request
                       </Button>
                     )}

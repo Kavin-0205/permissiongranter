@@ -8,9 +8,9 @@ export const sendNotification = async (type, recipient, message) => {
   console.log(`To: ${recipient}`);
   console.log(`Message: ${message}`);
   console.log(`-----------------------------\n`);
-  
+
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  
+
   return true;
 };

@@ -53,10 +53,15 @@ export function ApprovalDashboard() {
     }
   };
 
-  const filteredApprovals = approvals.filter(req => 
-    (req.workflowId?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (req.requesterId?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredApprovals = approvals
+    .filter(req => 
+      (req.workflowId?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (req.requesterId?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const order = { high: 0, medium: 1, low: 2 };
+      return order[a.priority || 'medium'] - order[b.priority || 'medium'];
+    });
 
   return (
     <div className="flex-col w-full h-full max-w-7xl mx-auto p-4 md:p-8 animate-fade-in fade-in-up">
@@ -74,7 +79,13 @@ export function ApprovalDashboard() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" icon={<Filter size={18} />}>Filter</Button>
+        <Button 
+          variant="outline" 
+          icon={<Filter size={18} />}
+          onClick={() => alert('Approval filtering logic coming in v1.1. Current queue is sorted by Priority.')}
+        >
+          Filter
+        </Button>
       </div>
 
       {loading ? (
@@ -98,6 +109,12 @@ export function ApprovalDashboard() {
                 {/* Request Info */}
                 <div className="flex-col gap-3 flex-1">
                   <div className="flex items-center gap-3">
+                    <Badge variant={
+                      req.priority === 'high' ? 'error' : 
+                      req.priority === 'medium' ? 'warning' : 'neutral'
+                    }>
+                      {req.priority || 'medium'}
+                    </Badge>
                     <Badge variant="warning">Approval Required</Badge>
                     <span className="text-sm font-mono text-muted">ID: {req._id.slice(-6)}</span>
                   </div>

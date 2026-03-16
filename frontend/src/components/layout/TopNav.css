@@ -1,18 +1,24 @@
 .topnav {
-  height: 64px;
-  min-height: 64px;
-  background-color: var(--bg-secondary);
+  height: 72px; 
+  min-height: 72px;
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-normal);
+  z-index: 30; 
+  position: sticky;
+  top: 0;
 }
 
 .topnav-left h1 {
   margin: 0;
   color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .topnav-right {
@@ -23,36 +29,41 @@
 
 .icon-btn {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-secondary);
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
   position: relative;
+  cursor: pointer;
 }
 
 .icon-btn:hover {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  color: var(--primary);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .icon-btn .badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -2px;
+  right: -2px;
   background-color: var(--error);
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   border: 2px solid var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
 }
