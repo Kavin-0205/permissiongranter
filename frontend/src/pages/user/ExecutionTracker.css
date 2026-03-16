@@ -1,0 +1,32 @@
+.tracker-layout {
+  height: calc(100vh - 120px);
+}
+
+.tracker-content {
+  height: calc(100% - 60px);
+}
+
+.bg-border-color { background-color: var(--border-color); }
+
+.timeline-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.logs-terminal {
+  background-color: #0f172a; /* Force dark bg for terminal feel */
+}
+
+/* Ensure timeline line connects properly */
+.timeline-line {
+  left: 27px; /* Align with center of 24px icon + 16px padding */
+}
