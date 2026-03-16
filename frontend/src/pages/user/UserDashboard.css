@@ -1,0 +1,89 @@
+.user-dashboard-wrapper {
+  position: relative;
+  min-height: 100%;
+  padding-bottom: 2rem;
+}
+
+/* Soft animated pastel gradient background */
+.user-dashboard-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(-45deg, #eef2ff, #f0fdfa, #f8fafc, #eff6ff);
+  background-size: 400% 400%;
+  animation: userGradient 15s ease infinite;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.dark .user-dashboard-bg {
+  background: linear-gradient(-45deg, #1e1b4b, #064e3b, #0f172a, #172554);
+}
+
+@keyframes userGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.user-dashboard-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* Glassy greeting banner */
+.user-welcome-banner {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+}
+
+.dark .user-welcome-banner {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Clean, soft cards */
+.user-stat-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.dark .user-stat-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dark .user-stat-card:hover {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.user-table-wrapper {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.dark .user-table-wrapper {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
