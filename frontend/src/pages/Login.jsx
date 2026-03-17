@@ -10,7 +10,8 @@ import './Login.css';
 import { useNavigate } from 'react-router-dom';
 
 export function Login({ setUser }) {
-  const { isDark } = useTheme();
+  // Theme is now forced to light/white mixed
+  const {} = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -32,84 +33,69 @@ export function Login({ setUser }) {
   };
 
   return (
-    <div className={`login-page ${isDark ? 'dark' : ''}`}>
-      <div className="login-container">
+    <div className="login-page">
+      <motion.div
+        className="login-card"
+        initial={{ opacity: 0, y: 24, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
+        {/* Logo */}
+        <div className="login-logo-wrap">
+          <div className="brand-logo">WA</div>
+        </div>
 
-        {/* Left Side - Brand/marketing */}
-        <div className="login-brand">
-          <div className="brand-content">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              <div className="brand-logo">WA</div>
-              <h1 className="text-h1 mt-8 text-primary-text font-bold">Intelligent Workflows.</h1>
-              <h1 className="text-h1 mt-2 text-primary-text font-bold opacity-70">Seamless Execution.</h1>
-              <p className="text-lg mt-6 text-muted max-w-md leading-relaxed">
-                The modern SaaS platform for orchestrating complex business logic dynamically. Scale your operations with an intuitive visual node builder and robust execution engine.
-              </p>
+        <div className="mb-8 text-center">
+          <h2 className="text-h2">Welcome back</h2>
+          <p className="text-muted mt-2">Sign in to your account to continue</p>
+        </div>
 
-              <div className="mt-12 flex items-center gap-4">
-                <div className="flex -space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-blue-800">JH</div>
-                  <div className="w-10 h-10 rounded-full bg-green-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-green-800">AK</div>
-                  <div className="w-10 h-10 rounded-full bg-purple-100 border-2 border-secondary flex items-center justify-center text-xs font-bold text-purple-800">SM</div>
-                </div>
-                <div className="text-sm font-medium text-muted">Join 10,000+ Teams</div>
-              </div>
-            </motion.div>
+        <form onSubmit={handleLogin} className="flex-col gap-5">
+          <div className="login-field">
+            <input
+              id="login-email"
+              type="email"
+              className="login-input"
+              placeholder=" "
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <label htmlFor="login-email" className="login-label">Email Address</label>
           </div>
-          <div className="brand-bg-pattern"></div>
-        </div>
 
-        {/* Right Side - Login Form */}
-        <div className="login-form-container">
-          <motion.div
-            className="login-form-wrapper"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <div className="mb-8">
-              <h2 className="text-h2">Welcome back</h2>
-              <p className="text-muted mt-2">Sign in to your account to continue</p>
-            </div>
+          <div className="login-field">
+            <input
+              id="login-password"
+              type="password"
+              className="login-input"
+              placeholder=" "
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <label htmlFor="login-password" className="login-label">Password</label>
+          </div>
 
+          <div className="flex justify-between items-center">
+            <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
+              <input type="checkbox" className="custom-checkbox" />
+              Remember me
+            </label>
+            <span className="text-sm font-semibold text-primary hover-underline cursor-pointer">
+              Forgot password?
+            </span>
+          </div>
 
+          <Button type="submit" variant="primary" size="lg" className="w-full justify-center mt-2">
+            Sign In <ArrowRight size={18} className="ml-2" />
+          </Button>
+        </form>
 
-            <form onSubmit={handleLogin} className="flex-col gap-4">
-              <div className="flex-col gap-1">
-                <label className="text-sm font-semibold text-muted">Email Address</label>
-                <input type="email" className="form-input bg-tertiary border border-color rounded p-3 w-full focus:outline-none focus:border-primary" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} required />
-              </div>
-
-              <div className="flex-col gap-1">
-                <label className="text-sm font-semibold text-muted">Password</label>
-                <input type="password" className="form-input bg-tertiary border border-color rounded p-3 w-full focus:outline-none focus:border-primary" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} required />
-              </div>
-
-              <div className="flex justify-between items-center mt-2 mb-4">
-                <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
-                  <input type="checkbox" className="custom-checkbox rounded" />
-                  Remember me
-                </label>
-                <span className="text-sm font-semibold text-primary hover-underline cursor-pointer">
-                  Forgot password?
-                </span>
-              </div>
-
-              <Button type="submit" variant="primary" size="lg" className="w-full justify-center">
-                Sign In <ArrowRight size={18} className="ml-2" />
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-muted mt-8">
-              Don't have an account? <span onClick={() => navigate('/register')} className="text-primary font-semibold cursor-pointer hover-underline">Sign up</span>
-            </p>
-          </motion.div>
-        </div>
-      </div>
+        <p className="text-center text-xs text-muted mt-8 opacity-60">
+          Access is managed by your administrator.
+        </p>
+      </motion.div>
     </div>
   );
 }

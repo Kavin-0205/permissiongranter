@@ -57,6 +57,7 @@ export const startExecution = async (workflowId, requesterId, payloadData) => {
 
   const execution = await Execution.create({
     workflowId,
+    workflow_version: workflow.version,
     requesterId,
     payloadData: validatedPayload,
     status: ExecutionStatus.PENDING,
@@ -146,19 +147,20 @@ export const runNextStep = async (executionId) => {
       const rules = await Rule.find({ stepId: step._id }).sort({ priority: 1 });
       let nextStepId = null;
       let ruleMatched = false;
+      const evaluatedRules = [];
 
       for (const rule of rules) {
         if (!rule.isFallback) {
           const isMatch = evaluateRule(rule.conditionExpression, execution.payloadData);
-          if (isMatch) {
+          evaluatedRules.push({
+            rule: rule.conditionExpression,
+            result: isMatch,
+            nextStepId: rule.nextStepId
+          });
+
+          if (isMatch && !ruleMatched) {
             nextStepId = rule.nextStepId;
             ruleMatched = true;
-            await ExecutionLog.create({
-              executionId: execution._id,
-              action: 'Rule Match',
-              details: `Matched: ${rule.conditionExpression} -> routing to next step`
-            });
-            break;
           }
         }
       }
@@ -167,13 +169,23 @@ export const runNextStep = async (executionId) => {
         const fallbackRule = rules.find(r => r.isFallback);
         if (fallbackRule) {
           nextStepId = fallbackRule.nextStepId;
-          await ExecutionLog.create({
-            executionId: execution._id,
-            action: 'Fallback Rule',
-            details: 'Using default path.'
+          evaluatedRules.push({
+            rule: 'DEFAULT (Fallback)',
+            result: true,
+            nextStepId
           });
         }
       }
+
+      await ExecutionLog.create({
+        executionId: execution._id,
+        stepId: step._id,
+        action: 'Rule Evaluation',
+        details: `Step: ${step.name}. Matched: ${ruleMatched ? 'YES' : 'Fallback'}`,
+        metadata: { 
+          evaluated_rules: evaluatedRules 
+        }
+      });
 
       execution.currentStepId = nextStepId || null;
       await execution.save();

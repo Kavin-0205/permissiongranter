@@ -8,6 +8,7 @@ const executionLogSchema = new mongoose.Schema({
   durationMs: { type: Number },
   errorReason: { type: String },
   actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Who triggered this action (approver, system, etc.)
+  metadata: { type: mongoose.Schema.Types.Mixed }, // Structured metadata (e.g., evaluated rules)
 }, { timestamps: true });
 
 executionLogSchema.index({ executionId: 1 });

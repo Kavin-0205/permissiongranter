@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 
 import { Login } from './pages/Login';
-import { Register } from './pages/Register';
 
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { UserDashboard } from './pages/user/Dashboard';
@@ -40,11 +39,10 @@ export default function App() {
       <Route path="/login" element={
         user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <Login setUser={setUser} />
       } />
-      
-      <Route path="/register" element={
-        user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <Register setUser={setUser} />
-      } />
-      
+
+      {/* Register is disabled — redirect to login */}
+      <Route path="/register" element={<Navigate to="/login" replace />} />
+
       {/* Admin Routes */}
       <Route path="/admin" element={
         user?.role === 'admin' ? <Layout user={user} setUser={setUser} title="Admin Workspace" /> : <Navigate to="/login" replace />

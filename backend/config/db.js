@@ -12,7 +12,10 @@ const connectDB = async () => {
   mongoose.set('bufferCommands', false);
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const mongoUri = isProduction ? process.env.MONGO_URI : (process.env.MONGO_LOCAL_URI || 'mongodb://127.0.0.1:27017/helleyx');
+  // Use local DB for dev if available, otherwise fallback to primary MONGO_URI then local default
+  const mongoUri = isProduction 
+    ? process.env.MONGO_URI 
+    : (process.env.MONGO_LOCAL_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/helleyx');
 
   if (!mongoUri) {
     console.error('MongoDB URI is missing. Set MONGO_URI in .env');

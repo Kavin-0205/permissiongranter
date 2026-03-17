@@ -1,23 +1,27 @@
-import { evaluate } from 'mathjs';
+import { create, all } from 'mathjs';
+
+const math = create(all);
+
+// Extend mathjs with custom string functions as per requirements
+math.import({
+  contains: (str, substr) => String(str).includes(substr),
+  startsWith: (str, prefix) => String(str).startsWith(prefix),
+  endsWith: (str, suffix) => String(str).endsWith(suffix)
+});
 
 /**
  * Safely evaluates a logical condition against a payload.
- * Example condition: "amount > 1000 && department == 'Finance'"
- * Payload: { amount: 1500, department: 'Finance' }
+ * Example condition: "contains(department, 'Finance') && amount > 1000"
  */
 export const evaluateRule = (conditionExpression, payloadData) => {
   try {
-    // If it's a raw DEFAULT clause, immediately return true
     if (!conditionExpression || conditionExpression.trim() === 'DEFAULT') {
       return true;
     }
 
-    // mathjs evaluate handles objects directly as scope mapping
-    // e.g., evaluate('amount > 1000', { amount: 1500 }) returns true
-    return evaluate(conditionExpression, payloadData || {});
+    return math.evaluate(conditionExpression, payloadData || {});
   } catch (error) {
     console.error('Rule Evaluation Error:', error.message);
-    // If a rule is malformed, log it and return false to fall through to the fallback
     return false;
   }
 };

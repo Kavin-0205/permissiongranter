@@ -47,22 +47,91 @@ export function WorkflowRunner() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // payload parsed as numbers where applicable for mathjs evaluation
+      const schema = workflow?.inputSchema || {};
       const parsedPayload = { ...formData };
-      if (parsedPayload.amount) parsedPayload.amount = parseFloat(parsedPayload.amount);
+
+      // Parse fields to their correct types based on schema
+      Object.keys(parsedPayload).forEach(key => {
+        if (schema[key]?.type === 'number') {
+          parsedPayload[key] = parseFloat(parsedPayload[key]) || 0;
+        } else if (schema[key]?.type === 'boolean') {
+          parsedPayload[key] = parsedPayload[key] === 'true';
+        }
+      });
 
       await apiClient.post(`/executions/${workflowId}`, { payload: parsedPayload });
-      navigate('/user/execution'); // Jump to tracking timeline
+      navigate('/user/execution');
     } catch (err) {
       console.error(err);
-      alert('Failed to start workflow execution.');
+      alert('Failed to start workflow: ' + (err.response?.data?.message || err.message));
     } finally {
       setSubmitting(false);
     }
   };
 
+  const renderField = (key, fieldDef) => {
+    const label = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+    const isRequired = fieldDef?.required !== false;
+
+    if (fieldDef?.allowed_values && fieldDef.allowed_values.length > 0) {
+      return (
+        <div key={key} className="flex-col gap-2">
+          <label className="text-sm font-medium text-muted capitalize flex items-center gap-1">
+            {label} {isRequired && <span className="text-error text-xs">*</span>}
+          </label>
+          <select
+            className="form-input bg-tertiary border border-color rounded-lg p-3 w-full focus:outline-none focus:border-primary text-sm"
+            value={formData[key] || ''}
+            onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+            required={isRequired}
+          >
+            <option value="">-- Select {label} --</option>
+            {fieldDef.allowed_values.map(v => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    if (key.toLowerCase() === 'reason' || key.toLowerCase() === 'description' || key.toLowerCase() === 'notes') {
+      return (
+        <div key={key} className="flex-col gap-2">
+          <label className="text-sm font-medium text-muted capitalize flex items-center gap-1">
+            {label} {isRequired && <span className="text-error text-xs">*</span>}
+          </label>
+          <textarea
+            className="form-input bg-tertiary border border-color rounded-lg p-3 w-full focus:outline-none focus:border-primary min-h-[100px] text-sm"
+            placeholder={`Enter ${label}...`}
+            value={formData[key] || ''}
+            onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+            required={isRequired}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div key={key} className="flex-col gap-2">
+        <label className="text-sm font-medium text-muted capitalize flex items-center gap-1">
+          {label} {isRequired && <span className="text-error text-xs">*</span>}
+        </label>
+        <Input
+          type={fieldDef?.type === 'number' ? 'number' : 'text'}
+          placeholder={`Enter ${label}...`}
+          value={formData[key] || ''}
+          onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+          required={isRequired}
+        />
+      </div>
+    );
+  };
+
   if (loading) return <div className="p-8"><Loader2 className="animate-spin" /></div>;
   if (!workflow) return <div className="p-8 text-error">Workflow not found</div>;
+
+  const schema = workflow.inputSchema || {};
+  const hasSchema = Object.keys(schema).length > 0;
 
   return (
     <div className="flex-col max-w-3xl mx-auto p-4 md:p-8 animate-fade-in fade-in-up">
@@ -80,10 +149,10 @@ export function WorkflowRunner() {
              <div className="w-10 h-10 rounded-lg bg-white bg-opacity-20 flex center">
                <Sparkles size={20} />
              </div>
-             <h1 className="text-h2 font-bold m-0">{workflow.title}</h1>
+             <h1 className="text-h2 font-bold m-0">{workflow.title || workflow.name}</h1>
           </div>
           <p className="text-white text-opacity-80 text-lg ml-13">
-            {workflow.description || 'Fill out the dynamic schema details below to trigger this workflow sequence.'}
+            {workflow.description || 'Fill out the details below to trigger this workflow.'}
           </p>
         </div>
 
@@ -112,30 +181,15 @@ export function WorkflowRunner() {
             </div>
           </div>
           
-          {Object.keys(formData).filter(k => k !== 'priority').map((key) => (
-            <div key={key} className="flex-col gap-2">
-              <label className="text-sm font-medium text-muted capitalize">
-                {key.replace(/([A-Z])/g, ' $1').trim()}
-              </label>
-              {key.toLowerCase() === 'reason' || key.toLowerCase() === 'description' ? (
-                 <textarea 
-                   className="form-input bg-tertiary border border-color rounded p-3 w-full focus:outline-none focus:border-primary min-h-[100px]"
-                   placeholder={`Enter ${key}...`}
-                   value={formData[key]}
-                   onChange={(e) => setFormData({...formData, [key]: e.target.value})}
-                   required
-                 />
-              ) : (
-                <Input 
-                  type={key.toLowerCase() === 'amount' ? 'number' : 'text'}
-                  placeholder={`Enter ${key}...`}
-                  value={formData[key]}
-                  onChange={(e) => setFormData({...formData, [key]: e.target.value})}
-                  required
-                />
-              )}
-            </div>
-          ))}
+          {hasSchema ? (
+            Object.entries(schema).map(([key, fieldDef]) => renderField(key, fieldDef))
+          ) : (
+            <>
+              {renderField('amount', { type: 'number', required: true })}
+              {renderField('department', { type: 'string', required: true })}
+              {renderField('reason', { type: 'string', required: true })}
+            </>
+          )}
 
           <div className="pt-6 border-t border-color flex justify-end gap-4">
             <Button variant="ghost" onClick={() => navigate('/user/workflows')}>Cancel</Button>

@@ -96,65 +96,82 @@ export function WorkflowList({ adminMode = false }) {
           <p>No workflows found.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((workflow, index) => (
-            <motion.div
-              key={workflow._id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card className="h-full flex-col hover:-translate-y-1 transition-transform duration-300">
-                <CardContent className="p-6 flex-col flex-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-primary bg-opacity-10 text-primary flex center">
-                      <Settings2 size={24} />
+        <div className="bg-secondary rounded-xl border border-color overflow-hidden shadow-sm">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-tertiary border-b border-color">
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider">ID</th>
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider">Name</th>
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider text-center">Steps</th>
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider text-center">Version</th>
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider">Status</th>
+                <th className="p-4 text-xs font-bold uppercase text-muted tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((workflow, index) => (
+                <motion.tr 
+                  key={workflow._id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="border-b border-color hover:bg-tertiary transition-colors"
+                >
+                  <td className="p-4">
+                    <code className="text-[10px] text-muted bg-tertiary px-1 py-0.5 rounded">{workflow._id.substring(workflow._id.length - 8)}</code>
+                  </td>
+                  <td className="p-4">
+                    <div className="flex-col">
+                      <span className="font-semibold text-primary-text">{workflow.title || workflow.name}</span>
+                      {workflow.description && <span className="text-xs text-muted line-clamp-1 max-w-xs">{workflow.description}</span>}
                     </div>
-                    {adminMode && (
-                      <Badge variant={workflow.status === 'published' ? 'success' : 'warning'}>
-                        {workflow.status} v{workflow.version}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <h3 className="text-h4 mb-2">{workflow.title}</h3>
-                  <p className="text-sm text-muted mb-6 flex-1 line-clamp-3">
-                    {workflow.description}
-                  </p>
-                  
-                  <div className="mt-auto border-t border-color pt-4 flex gap-3">
-                    {adminMode ? (
-                      <>
+                  </td>
+                  <td className="p-4 text-center">
+                    <Badge variant="neutral">{workflow.steps?.length || 0}</Badge>
+                  </td>
+                  <td className="p-4 text-center">
+                    <span className="text-sm font-medium">v{workflow.version}</span>
+                  </td>
+                  <td className="p-4">
+                    <Badge variant={workflow.status === 'published' ? 'success' : 'warning'}>
+                      {workflow.status.toUpperCase()}
+                    </Badge>
+                  </td>
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      {adminMode ? (
+                        <>
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            icon={<Edit3 size={14} />} 
+                            onClick={() => navigate(`/admin/editor/${workflow._id}`)}
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="danger-outline" 
+                            size="sm"
+                            icon={<Trash2 size={14} />} 
+                            onClick={() => handleDelete(workflow._id)}
+                          />
+                        </>
+                      ) : (
                         <Button 
-                          variant="outline" 
-                          icon={<Edit3 size={16} />} 
-                          className="flex-1 justify-center"
-                          onClick={() => navigate(`/admin/editor/${workflow._id}`)}
+                          variant="primary" 
+                          size="sm"
+                          icon={<Play size={14} />} 
+                          onClick={() => navigate(`/user/workflows/${workflow._id}/start`)}
                         >
-                          Edit
+                          Execute
                         </Button>
-                        <Button 
-                          variant="danger-outline" 
-                          icon={<Trash2 size={16} />} 
-                          title="Delete"
-                          onClick={() => handleDelete(workflow._id)}
-                        />
-                      </>
-                    ) : (
-                      <Button 
-                        variant="primary" 
-                        icon={<Play size={16} />} 
-                        className="w-full justify-center"
-                        onClick={() => navigate(`/user/workflows/${workflow._id}/start`)}
-                      >
-                        Start Request
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                      )}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

@@ -38,6 +38,57 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ── TEMPORARY SEED ENDPOINT (remove after running once) ──────────────────────
+// Visit: http://localhost:5000/seed?key=helleyx-seed-2024
+app.get('/seed', async (req, res) => {
+  if (req.query.key !== 'helleyx-seed-2024') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  try {
+    const { default: bcrypt } = await import('bcrypt');
+    const { default: User } = await import('./models/User.js');
+    const { default: Role } = await import('./models/Role.js');
+
+    const roles = await Role.find({});
+    if (!roles.length) return res.status(400).json({ message: 'No roles found. Run seedRoles first.' });
+    const roleMap = {};
+    roles.forEach(r => roleMap[r.name] = r._id);
+
+    const users = [
+      { name: 'Alexandra Reynolds', email: 'ceo@helleyx.com', password: 'Admin@1234', role: 'admin', dept: 'Executive' },
+      { name: 'Daniel Carter', email: 'dcarter@helleyx.com', password: 'Manager@1234', role: 'manager', dept: 'Engineering' },
+      { name: 'Priya Sharma', email: 'psharma@helleyx.com', password: 'Manager@1234', role: 'manager', dept: 'Finance' },
+      { name: 'Marcus Johnson', email: 'mjohnson@helleyx.com', password: 'Manager@1234', role: 'manager', dept: 'Sales' },
+      { name: 'Emily Turner', email: 'eturner@helleyx.com', password: 'User@1234', role: 'user', dept: 'Engineering' },
+      { name: 'James Kim', email: 'jkim@helleyx.com', password: 'User@1234', role: 'user', dept: 'Engineering' },
+      { name: 'Natasha Ivanova', email: 'nivanova@helleyx.com', password: 'User@1234', role: 'user', dept: 'Engineering' },
+      { name: 'Aisha Ndiaye', email: 'andiaye@helleyx.com', password: 'User@1234', role: 'user', dept: 'Engineering' },
+      { name: 'Fatima Al-Hassan', email: 'falhassan@helleyx.com', password: 'User@1234', role: 'user', dept: 'Finance' },
+      { name: 'Carlos Mendez', email: 'cmendez@helleyx.com', password: 'User@1234', role: 'user', dept: 'Finance' },
+      { name: 'Omar Sheikh', email: 'osheikh@helleyx.com', password: 'User@1234', role: 'user', dept: 'Finance' },
+      { name: 'Sophie Brown', email: 'sbrown@helleyx.com', password: 'User@1234', role: 'user', dept: 'Sales' },
+      { name: 'Liam Patel', email: 'lpatel@helleyx.com', password: 'User@1234', role: 'user', dept: 'Sales' },
+      { name: 'Taylor Brooks', email: 'tbrooks@helleyx.com', password: 'User@1234', role: 'user', dept: 'Sales' },
+    ];
+
+    // Clear all existing users
+    await User.deleteMany({});
+
+    const created = [];
+    for (const u of users) {
+      const salt = await bcrypt.genSalt(10);
+      const hashed = await bcrypt.hash(u.password, salt);
+      await User.create({ name: u.name, email: u.email, password: hashed, role: roleMap[u.role], department: u.dept });
+      created.push(`${u.role.toUpperCase()}: ${u.name} <${u.email}>`);
+    }
+
+    res.json({ success: true, message: `Seeded ${created.length} users`, users: created });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Error Handling Middleware
 app.use(notFound);
 app.use(errorHandler);

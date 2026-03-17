@@ -206,22 +206,47 @@ export function WorkflowEditor() {
               <Code size={16} /> Input Schema
             </h4>
             <div className="flex-col gap-3">
-              {Object.entries(workflow.inputSchema || {}).map(([key, type]) => (
-                <div key={key} className="bg-tertiary p-2 rounded-lg border border-color flex justify-between items-center group">
-                  <div className="flex-col">
-                    <span className="text-xs font-bold text-primary-text">{key}</span>
-                    <span className="text-[10px] uppercase text-muted tracking-tighter">{type}</span>
+              {Object.entries(workflow.inputSchema || {}).map(([key, field]) => (
+                <div key={key} className="bg-tertiary p-3 rounded-lg border border-color flex justify-between items-start group">
+                  <div className="flex-col gap-1 flex-1">
+                    <div className="flex items-center gap-2">
+                       <span className="text-xs font-bold text-primary-text">{key}</span>
+                       <Badge variant={field.required ? 'error' : 'neutral'} className="text-[8px] py-0 px-1">
+                         {field.required ? 'REQUIRED' : 'OPTIONAL'}
+                       </Badge>
+                    </div>
+                    <span className="text-[10px] uppercase text-muted tracking-tighter">{field.type}</span>
+                    {field.allowed_values && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {field.allowed_values.map(v => (
+                          <span key={v} className="text-[9px] px-1 bg-secondary rounded border border-color text-muted">{v}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <button 
-                    className="p-1 text-muted hover-text-error opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => {
-                      const newSchema = { ...workflow.inputSchema };
-                      delete newSchema[key];
-                      setWorkflow({ ...workflow, inputSchema: newSchema });
-                    }}
-                  >
-                    <X size={14} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      className={`p-1 rounded hover:bg-black hover:bg-opacity-5 ${field.required ? 'text-error' : 'text-muted'}`}
+                      onClick={() => {
+                        const newSchema = { ...workflow.inputSchema };
+                        newSchema[key] = { ...field, required: !field.required };
+                        setWorkflow({ ...workflow, inputSchema: newSchema });
+                      }}
+                      title="Toggle Required"
+                    >
+                      <Settings2 size={12} />
+                    </button>
+                    <button 
+                      className="p-1 text-muted hover-text-error opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        const newSchema = { ...workflow.inputSchema };
+                        delete newSchema[key];
+                        setWorkflow({ ...workflow, inputSchema: newSchema });
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
               
@@ -231,37 +256,46 @@ export function WorkflowEditor() {
                   id="new-field-name"
                   placeholder="Field Name" 
                   className="bg-transparent text-xs w-full focus:outline-none border-b border-color mb-2"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      const name = e.target.value.trim();
-                      if (!name) return;
-                      setWorkflow({
-                        ...workflow,
-                        inputSchema: { ...workflow.inputSchema, [name]: 'string' }
-                      });
-                      e.target.value = '';
-                    }
-                  }}
                 />
-                <div className="flex gap-1">
-                  {['string', 'number', 'boolean'].map(t => (
-                    <button 
-                      key={t}
-                      className="text-[10px] px-1.5 py-0.5 rounded bg-tertiary border border-color hover:bg-primary hover:text-white transition-colors capitalize"
-                      onClick={() => {
-                        const nameEl = document.getElementById('new-field-name');
-                        const name = nameEl.value.trim();
-                        if (!name) return;
-                        setWorkflow({
-                          ...workflow,
-                          inputSchema: { ...workflow.inputSchema, [name]: t }
-                        });
-                        nameEl.value = '';
-                      }}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                <input 
+                  type="text" 
+                  id="new-field-enums"
+                  placeholder="Enum values (comma-sep, opt)" 
+                  className="bg-transparent text-[10px] w-full focus:outline-none border-b border-color mb-3 opacity-70"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted font-medium">Add as:</span>
+                  <div className="flex gap-1">
+                    {['string', 'number', 'boolean'].map(t => (
+                      <button 
+                        key={t}
+                        className="text-[10px] px-2 py-0.5 rounded bg-tertiary border border-color hover:bg-primary hover:text-white transition-colors capitalize"
+                        onClick={() => {
+                          const nameEl = document.getElementById('new-field-name');
+                          const enumEl = document.getElementById('new-field-enums');
+                          const name = nameEl.value.trim();
+                          if (!name) return;
+                          
+                          const enums = enumEl.value.split(',').map(v => v.trim()).filter(Boolean);
+                          setWorkflow({
+                            ...workflow,
+                            inputSchema: { 
+                              ...workflow.inputSchema, 
+                              [name]: { 
+                                type: t, 
+                                required: true,
+                                ...(enums.length > 0 ? { allowed_values: enums } : {})
+                              } 
+                            }
+                          });
+                          nameEl.value = '';
+                          enumEl.value = '';
+                        }}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -349,9 +383,17 @@ export function WorkflowEditor() {
             <h4 className="text-sm font-semibold text-primary flex items-center gap-2 mb-1">
               <Code size={16} /> Dynamic Evaluation Syntax
             </h4>
-            <p className="text-xs text-muted">
-              Write logical rules using Javascript syntax that evaluate against the payload (e.g. <code>amount &gt; 1000 && department == 'Sales'</code>). The engine uses Priority order (lowest number first).
+            <p className="text-xs text-muted mb-2">
+              Write logical rules using Javascript syntax (e.g. <code>amount &gt; 100 && department == 'Sales'</code>).
             </p>
+            <div className="bg-black bg-opacity-5 p-2 rounded flex-col gap-1">
+               <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Available String Functions</span>
+               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                 <code className="text-[10px]">contains(field, "val")</code>
+                 <code className="text-[10px]">startsWith(field, "pre")</code>
+                 <code className="text-[10px]">endsWith(field, "suf")</code>
+               </div>
+            </div>
           </div>
 
           {activeStepRules.map((rule, idx) => (

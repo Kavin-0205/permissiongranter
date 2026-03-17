@@ -8,9 +8,11 @@ import { useTheme } from '../components/layout/ThemeContext';
 import './Register.css'; // New dedicated styling
 
 export function Register({ setUser }) {
-  const { isDark } = useTheme();
+  // Theme is now forced to light/white mixed
+  const {} = useTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [department, setDepartment] = useState('');
   const [password, setPassword] = useState('');
   const [isManager, setIsManager] = useState(false);
   const [managerCode, setManagerCode] = useState('');
@@ -27,6 +29,7 @@ export function Register({ setUser }) {
         name,
         email,
         password,
+        department,
         managerCode: isManager ? managerCode : undefined
       });
       setUser(res.data);
@@ -41,7 +44,7 @@ export function Register({ setUser }) {
   };
 
   return (
-    <div className={`register-page ${isDark ? 'dark' : ''}`}>
+    <div className="register-page">
       <div className="register-mesh-bg"></div>
 
       <motion.div
@@ -80,6 +83,11 @@ export function Register({ setUser }) {
           <div>
             <label className="register-label">Email Address</label>
             <input type="email" className="register-form-input" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+
+          <div>
+            <label className="register-label">Department</label>
+            <input type="text" className="register-form-input" placeholder="e.g. Engineering, HR, Sales" value={department} onChange={e => setDepartment(e.target.value)} required />
           </div>
 
           <div>

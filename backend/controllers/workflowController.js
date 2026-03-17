@@ -2,6 +2,7 @@ import { z } from 'zod';
 import Workflow from '../models/Workflow.js';
 import Step from '../models/Step.js';
 import Rule from '../models/Rule.js';
+import { WorkflowStatus } from '../constants/enums.js';
 
 // Define Zod schema for input validation
 const workflowSchema = z.object({

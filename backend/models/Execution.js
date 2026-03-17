@@ -1,21 +1,24 @@
+import mongoose from 'mongoose';
 import { ExecutionStatus, Priority } from '../constants/enums.js';
 
 const executionSchema = new mongoose.Schema({
   workflowId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workflow', required: true },
-  requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  payloadData: { type: mongoose.Schema.Types.Mixed, default: {} }, // Input data submitted by user
+  workflow_version: { type: Number }, // Snapshot at time of execution
+  requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, alias: 'triggered_by' },
+  payloadData: { type: mongoose.Schema.Types.Mixed, default: {}, alias: 'data' }, 
   status: { 
     type: String, 
     enum: Object.values(ExecutionStatus), 
     default: ExecutionStatus.PENDING 
   },
-  currentStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step' },
+  currentStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', alias: 'current_step_id' },
   priority: { 
     type: String, 
     enum: Object.values(Priority), 
     default: Priority.MEDIUM 
   },
-}, { timestamps: true });
+  retries: { type: Number, default: 0 },
+}, { timestamps: true, toJSON: { virtuals: true, aliases: true }, toObject: { virtuals: true, aliases: true } });
 
 // Optimize query performance for execution dashboards and analytics
 executionSchema.index({ workflowId: 1 });

@@ -174,6 +174,23 @@ export function ExecutionTracker() {
                           </span>
                         </div>
                         <p className="text-sm text-muted">{log.details}</p>
+                        
+                        {log.metadata?.evaluated_rules && (
+                          <div className="mt-4 flex-col gap-2">
+                             <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-1">Rule Evaluations</div>
+                             <div className="flex-col gap-1">
+                               {log.metadata.evaluated_rules.map((r, i) => (
+                                 <div key={i} className={`text-xs p-2 rounded border flex justify-between items-center ${r.result ? 'bg-success bg-opacity-5 border-success border-opacity-20' : 'bg-secondary border-color opacity-60'}`}>
+                                    <code className="font-mono">{r.rule}</code>
+                                    <Badge variant={r.result ? 'success' : 'neutral'} className="text-[9px] py-0 px-1">
+                                      {r.result ? 'MATCH' : 'SKIP'}
+                                    </Badge>
+                                 </div>
+                               ))}
+                             </div>
+                          </div>
+                        )}
+
                         {log.errorReason && (
                           <p className="text-sm text-error mt-2 font-mono bg-error bg-opacity-10 p-2 rounded">
                             {log.errorReason}

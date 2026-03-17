@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Colors - Light Theme */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
+  /* Colors - Clean White Mixed Theme */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -14,7 +14,7 @@
   
   --primary: #4f46e5;      /* Indigo */
   --primary-hover: #4338ca;
-  --primary-light: #e0e7ff;
+  --primary-light: #eef2ff;
   --primary-text: #3730a3;
   --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   
@@ -45,8 +45,8 @@
   --radius-full: 9999px;
 
   /* Glassmorphism Defaults */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.9);
   --glass-blur: blur(12px);
 
   /* Transitions */
@@ -54,47 +54,6 @@
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
   --spring-transition: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.dark {
-  /* Colors - Dark Theme */
-  --bg-primary: #020617;   /* Rich Slate 950 */
-  --bg-secondary: #0f172a; /* Slate 900 */
-  --bg-tertiary: #1e293b;  /* Slate 800 */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #64748b;
-  
-  --border-color: #1e293b;
-  --hover-bg: #1e293b;
-  
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
-  --primary-light: #1e1b4b; /* Subtle background for active states */
-  --primary-text: #e0e7ff;
-  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
-  
-  --secondary: #38bdf8;
-  --success: #10b981;
-  --success-bg: #064e3b;
-  --success-text: #a7f3d0;
-  --warning: #f59e0b;
-  --warning-bg: #78350f;
-  --warning-text: #fde68a;
-  --error: #ef4444;
-  --error-bg: #7f1d1d;
-  --error-text: #fecaca;
-  
-  /* Deeper shadows for dark mode */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
-  --shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
-
-  /* Glassmorphism Dark */
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
 * {

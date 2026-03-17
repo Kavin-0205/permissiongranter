@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
 const ruleSchema = new mongoose.Schema({
-  stepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: true },
-  conditionExpression: { type: String, required: true }, // E.g., "amount > 1000" or "DEFAULT"
+  stepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: true, alias: 'step_id' },
+  conditionExpression: { type: String, required: true, alias: 'condition' }, // E.g., "amount > 1000" or "DEFAULT"
   priority: { type: Number, default: 0 }, // Lower number = higher priority to evaluate first
-  nextStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step' }, // Can be null if it's the end of flow
+  nextStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', alias: 'next_step_id' }, // Can be null if it's the end of flow
   isFallback: { type: Boolean, default: false },
-}, { timestamps: true });
+}, { timestamps: true, toJSON: { virtuals: true, aliases: true }, toObject: { virtuals: true, aliases: true } });
 
 ruleSchema.index({ stepId: 1, priority: 1 });
 

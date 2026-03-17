@@ -3,26 +3,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  // Check local storage or system preference
-  const [isDark, setIsDark] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      return savedTheme === 'dark';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Theme is now forced to light/white mixed
+  const isDark = false;
+  const toggleTheme = () => {
+    console.log('Dark mode is disabled in this version.');
+  };
 
   useEffect(() => {
-    // Update local storage and document class when theme changes
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(!isDark);
+    // Ensure the dark class is removed if it somehow persisted
+    document.documentElement.classList.remove('dark');
+    localStorage.removeItem('theme');
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ isDark, toggleTheme }}>
