@@ -21,7 +21,7 @@ export function ManagerDashboard() {
       setLoading(true);
       const [analyticsRes, executionsRes] = await Promise.all([
         apiClient.get('/analytics'),
-        apiClient.get('/executions?status=paused_for_approval&limit=5')
+        apiClient.get('/executions?status=waiting_for_approval&limit=5')
       ]);
       
       setStats({

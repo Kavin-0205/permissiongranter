@@ -23,7 +23,7 @@ export function ApprovalDashboard() {
   const fetchApprovals = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/executions?status=paused_for_approval');
+      const res = await apiClient.get('/executions?status=waiting_for_approval');
       setApprovals(res.data.executions || []);
     } catch (err) {
       console.error(err);

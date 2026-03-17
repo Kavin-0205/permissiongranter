@@ -189,7 +189,7 @@ export function ExecutionTracker() {
                   );
                 })}
                 
-                {activeExecution.status === 'in_progress' && (
+                {activeExecution.status === 'running' && (
                   <div className="relative opacity-60">
                      <div className="absolute -left-[45px] top-1 w-8 h-8 rounded-full border-2 border-dashed border-primary flex center bg-secondary text-primary animate-pulse">
                         <CircleDashed size={16} className="animate-spin" />

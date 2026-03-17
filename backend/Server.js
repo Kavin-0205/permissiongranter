@@ -3,14 +3,17 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/db.js';
-import { notFound, errorHandler } from './middleware/error.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 import apiRoutes from './routes/api.js';
+import { recoverInterruptedExecutions } from './services/executionService.js';
 
 dotenv.config();
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(() => {
+  recoverInterruptedExecutions();
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;

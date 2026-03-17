@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import { ExecutionStatus, Priority } from '../constants/enums.js';
 
 const executionSchema = new mongoose.Schema({
   workflowId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workflow', required: true },
@@ -6,14 +6,14 @@ const executionSchema = new mongoose.Schema({
   payloadData: { type: mongoose.Schema.Types.Mixed, default: {} }, // Input data submitted by user
   status: { 
     type: String, 
-    enum: ['pending', 'in_progress', 'paused_for_approval', 'completed', 'failed', 'canceled'], 
-    default: 'pending' 
+    enum: Object.values(ExecutionStatus), 
+    default: ExecutionStatus.PENDING 
   },
   currentStepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step' },
   priority: { 
     type: String, 
-    enum: ['low', 'medium', 'high'], 
-    default: 'medium' 
+    enum: Object.values(Priority), 
+    default: Priority.MEDIUM 
   },
 }, { timestamps: true });
 

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { verifyToken } from '../utils/authUtils.js';
 import User from '../models/User.js';
 
 const protect = async (req, res, next) => {
@@ -7,14 +7,20 @@ const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+      const decoded = verifyToken(token);
       
-      req.user = await User.findById(decoded.id).select('-password');
+      req.user = await User.findById(decoded.id).populate('role').select('-password');
+      
+      if (!req.user) {
+        res.status(401);
+        return next(new Error('Not authorized, user not found'));
+      }
+      
       next();
     } catch (error) {
-      console.error(error);
+      console.error('Auth middleware error:', error.message);
       res.status(401);
-      next(new Error('Not authorized, token failed'));
+      next(new Error('Not authorized, token invalid'));
     }
   }
 
@@ -24,22 +30,18 @@ const protect = async (req, res, next) => {
   }
 };
 
-const ensureAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403);
-    next(new Error('Not authorized as an admin'));
-  }
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (req.user && roles.includes(req.user.role.name)) {
+      next();
+    } else {
+      res.status(403);
+      next(new Error(`Not authorized. Required roles: ${roles.join(', ')}`));
+    }
+  };
 };
 
-const ensureManager = (req, res, next) => {
-  if (req.user && (req.user.role === 'manager' || req.user.role === 'admin')) {
-    next();
-  } else {
-    res.status(403);
-    next(new Error('Not authorized as a manager'));
-  }
-};
+const ensureAdmin = authorize('admin');
+const ensureManager = authorize('manager', 'admin');
 
-export { protect, ensureAdmin, ensureManager };
+export { protect, authorize, ensureAdmin, ensureManager };

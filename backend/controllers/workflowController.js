@@ -42,52 +42,75 @@ export const getWorkflows = async (req, res, next) => {
 };
 
 // Helper to save steps and rules for a workflow
-const saveStepsAndRules = async (workflowId, stepsPayload) => {
-  // Purge existing
-  await Step.deleteMany({ workflowId });
-  
+const saveStepsAndRules = async (workflow, stepsPayload) => {
   if (!stepsPayload || !Array.isArray(stepsPayload)) return;
 
-  // Insert sequentially because rule target IDs depend on steps
-  // (In proper implementation, client generates UUIDs mapped directly, but for simplicity here we assume map)
-  // We'll just trust the UI mapped the IDs as string IDs that we persist
-  
+  const workflowId = workflow._id;
+  const idMap = {}; // Maps frontend IDs (temp or real) to real MongoDB ObjectIds
+
+  // 1. Create/Update Steps (First pass: generate/verify all Step IDs)
+  const existingSteps = await Step.find({ workflowId });
+  const existingStepIds = existingSteps.map(s => s._id.toString());
+  const incomingStepIds = stepsPayload.map(s => s._id).filter(id => !id.startsWith('new_'));
+
+  // Delete steps that are no longer in the payload
+  const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id));
+  if (stepsToDelete.length > 0) {
+    await Step.deleteMany({ _id: { $in: stepsToDelete } });
+    await Rule.deleteMany({ stepId: { $in: stepsToDelete } });
+  }
+
   for (const stepData of stepsPayload) {
-    // Determine if it was a new ID from UI (starting with 'new_') or standard BSON
-    const isNew = stepData._id.startsWith('new_');
-    
     let dbStep;
-    if (isNew) {
+    const isTempId = stepData._id.startsWith('new_');
+
+    if (isTempId) {
       dbStep = await Step.create({
         workflowId,
         name: stepData.name,
         type: stepData.type,
         config: stepData.config
       });
-      // We would ideally map the old 'new_step' to the real _id for rule references
-      // But for this MVP prototype demo we will skip complex ID resolution mapping.
+      idMap[stepData._id] = dbStep._id;
     } else {
-       // Updating existing
-       dbStep = await Step.create({
-        workflowId,
+      dbStep = await Step.findByIdAndUpdate(stepData._id, {
         name: stepData.name,
         type: stepData.type,
         config: stepData.config
-      });
+      }, { new: true, upsert: true });
+      idMap[stepData._id] = dbStep._id;
     }
+    
+    // Check if this is the start step (usually the first one if not specified, 
+    // or we can handle a specific flag from FE)
+    if (stepData.isStartStep || (stepsPayload.indexOf(stepData) === 0 && !workflow.startStepId)) {
+      workflow.startStepId = dbStep._id;
+    }
+  }
+
+  // 2. Create/Update Rules (Second pass: link nextStepId using idMap)
+  for (const stepData of stepsPayload) {
+    const dbStepId = idMap[stepData._id];
+    
+    // Purge existing rules for this step to simplify sync
+    await Rule.deleteMany({ stepId: dbStepId });
 
     if (stepData.rules && Array.isArray(stepData.rules)) {
       for (const ruleData of stepData.rules) {
+        const nextStepId = ruleData.nextStepId ? (idMap[ruleData.nextStepId] || ruleData.nextStepId) : null;
+        
         await Rule.create({
-          stepId: dbStep._id,
+          stepId: dbStepId,
           conditionExpression: ruleData.conditionExpression,
-          priority: ruleData.priority,
-          nextStepId: ruleData.nextStepId && !ruleData.nextStepId.startsWith('new_') ? ruleData.nextStepId : null,
-          isFallback: ruleData.isFallback
+          priority: ruleData.priority || 0,
+          nextStepId,
+          isFallback: ruleData.isFallback || false
         });
       }
     }
   }
+
+  await workflow.save();
 };
 
 // @desc    Create a new workflow
@@ -96,12 +119,12 @@ const saveStepsAndRules = async (workflowId, stepsPayload) => {
 export const createWorkflow = async (req, res, next) => {
   try {
     const validatedData = workflowSchema.parse(req.body);
-    validatedData.status = 'draft';
+    validatedData.status = WorkflowStatus.DRAFT;
 
     const workflow = await Workflow.create(validatedData);
     
     if (req.body.steps) {
-      await saveStepsAndRules(workflow._id, req.body.steps);
+      await saveStepsAndRules(workflow, req.body.steps);
     }
     
     res.status(201).json(workflow);
@@ -161,7 +184,7 @@ export const updateWorkflow = async (req, res, next) => {
       });
 
       if (req.body.steps) {
-        await saveStepsAndRules(newWorkflow._id, req.body.steps);
+        await saveStepsAndRules(newWorkflow, req.body.steps);
       }
 
       return res.status(201).json(newWorkflow);
@@ -170,7 +193,7 @@ export const updateWorkflow = async (req, res, next) => {
       const updatedWorkflow = await workflow.save();
       
       if (req.body.steps) {
-        await saveStepsAndRules(updatedWorkflow._id, req.body.steps);
+        await saveStepsAndRules(updatedWorkflow, req.body.steps);
       }
       
       res.json(updatedWorkflow);

@@ -23,7 +23,7 @@ export function UserDashboard({ user }) {
       
       let active = 0, completed = 0, failed = 0;
       executions.forEach(ex => {
-        if (['in_progress', 'paused_for_approval', 'pending'].includes(ex.status)) active++;
+        if (['running', 'waiting_for_approval', 'pending'].includes(ex.status)) active++;
         else if (ex.status === 'completed') completed++;
         else failed++;
       });

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import User from '../models/User.js';
-import generateToken from '../utils/generateToken.js';
+import Role from '../models/Role.js';
+import { generateToken } from '../utils/authUtils.js';
 
 // Define Zod schema for registration
 const registerSchema = z.object({
@@ -15,9 +16,7 @@ const registerSchema = z.object({
 // @access  Public
 export const registerUser = async (req, res, next) => {
   try {
-    // Validate request body
     const validatedData = registerSchema.parse(req.body);
-
     const { name, email, password, managerCode } = validatedData;
 
     const userExists = await User.findOne({ email });
@@ -26,22 +25,28 @@ export const registerUser = async (req, res, next) => {
       throw new Error('User already exists');
     }
 
-    let role = 'user';
-    // Mock secret code verification for manager role
+    // RBAC: Map manager code to roles from DB
+    let roleName = 'user';
     if (managerCode === 'MGR-2026') {
-      role = 'manager';
+      roleName = 'manager';
     } else if (managerCode === 'ADMIN-2026') {
-      role = 'admin';
+      roleName = 'admin';
     } else if (managerCode && managerCode.length > 0) {
       res.status(400);
-      throw new Error('Invalid manager code');
+      throw new Error('Invalid registration code');
+    }
+
+    const role = await Role.findOne({ name: roleName });
+    if (!role) {
+      res.status(500);
+      throw new Error(`System error: Role '${roleName}' not found in database`);
     }
 
     const user = await User.create({
       name,
       email,
       password,
-      role,
+      role: role._id,
     });
 
     if (user) {
@@ -49,7 +54,7 @@ export const registerUser = async (req, res, next) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: roleName,
         token: generateToken(user._id),
       });
     } else {
@@ -72,14 +77,14 @@ export const authUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('role');
 
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role.name,
         token: generateToken(user._id),
       });
     } else {
@@ -96,14 +101,14 @@ export const authUser = async (req, res, next) => {
 // @access  Private
 export const getUserProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate('role');
 
     if (user) {
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role.name,
       });
     } else {
       res.status(404);

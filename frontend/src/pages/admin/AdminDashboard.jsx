@@ -135,7 +135,7 @@ export function AdminDashboard() {
           </div>
           <div>
             <p className="text-sm text-muted font-semibold uppercase">In Progress</p>
-            <h3 className="text-h2 font-black">{statusBreakdown?.in_progress || 0}</h3>
+            <h3 className="text-h2 font-black">{statusBreakdown?.running || 0}</h3>
           </div>
         </div>
       </div>

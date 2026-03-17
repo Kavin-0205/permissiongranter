@@ -1,6 +1,6 @@
 import Execution from '../models/Execution.js';
-import Workflow from '../models/Workflow.js';
 import User from '../models/User.js';
+import { ExecutionStatus } from '../constants/enums.js';
 
 // @desc    Get dashboard analytics (Total executions, success rate, etc.)
 // @route   GET /api/analytics
@@ -8,50 +8,94 @@ import User from '../models/User.js';
 export const getAnalytics = async (req, res, next) => {
   try {
     const totalExecutions = await Execution.countDocuments();
-    const completedExecutions = await Execution.countDocuments({ status: 'completed' });
-    const pendingApprovals = await Execution.countDocuments({ status: 'paused_for_approval' });
-    const failedExecutions = await Execution.countDocuments({ status: 'failed' });
-    
-    // Calculate average completion time
-    const completedList = await Execution.find({ status: 'completed' }).select('createdAt updatedAt');
-    let totalTime = 0;
-    completedList.forEach(ex => {
-      totalTime += (new Date(ex.updatedAt) - new Date(ex.createdAt));
-    });
-    
-    const avgTimeMs = completedList.length > 0 ? totalTime / completedList.length : 0;
-    
-    // System health rough estimate
-    const health = totalExecutions > 0 ? ((totalExecutions - failedExecutions) / totalExecutions) * 100 : 100;
-
     const activeUsers = await User.countDocuments();
+
+    // Single aggregation for status counts and average completion time
+    const statsResult = await Execution.aggregate([
+      {
+        $facet: {
+          statusBreakdown: [
+            {
+              $group: {
+                _id: '$status',
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          avgCompletionTime: [
+            { $match: { status: ExecutionStatus.COMPLETED } },
+            {
+              $project: {
+                duration: { $subtract: ['$updatedAt', '$createdAt'] }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                avgTime: { $avg: '$duration' }
+              }
+            }
+          ],
+          deptStats: [
+            {
+              // Join with User to get department if not in payload
+              $lookup: {
+                from: 'users',
+                localField: 'requesterId',
+                foreignField: '_id',
+                as: 'requester'
+              }
+            },
+            { $unwind: '$requester' },
+            {
+              $project: {
+                department: {
+                  $ifNull: ['$payloadData.department', '$requester.department', 'Unassigned']
+                }
+              }
+            },
+            {
+              $group: {
+                _id: '$department',
+                count: { $sum: 1 }
+              }
+            },
+            { $sort: { count: -1 } }
+          ]
+        }
+      }
+    ]);
+
+    const stats = statsResult[0];
     
-    // Aggregate requests by department
-    // We'll aggregate from Execution payloadData.department first, then fallback to requester's department if available
-    const allExecutions = await Execution.find().populate('requesterId', 'department');
-    const deptStats = {};
-    const statusStats = { completed: 0, failed: 0, in_progress: 0, paused: 0 };
+    // Format status breakdown
+    const statusMap = {
+      completed: 0,
+      failed: 0,
+      running: 0, // renamed from in_progress
+      waiting: 0  // renamed from paused_for_approval
+    };
 
-    allExecutions.forEach(ex => {
-      const dept = ex.payloadData?.department || ex.requesterId?.department || 'Unassigned';
-      deptStats[dept] = (deptStats[dept] || 0) + 1;
-
-      if (ex.status === 'completed') statusStats.completed++;
-      else if (['failed', 'canceled'].includes(ex.status)) statusStats.failed++;
-      else if (ex.status === 'paused_for_approval') statusStats.paused++;
-      else statusStats.in_progress++;
+    stats.statusBreakdown.forEach(s => {
+      if (s._id === ExecutionStatus.COMPLETED) statusMap.completed = s.count;
+      else if (s._id === ExecutionStatus.FAILED || s._id === ExecutionStatus.CANCELED) statusMap.failed += s.count;
+      else if (s._id === ExecutionStatus.WAITING_FOR_APPROVAL) statusMap.waiting = s.count;
+      else statusMap.running += s.count;
     });
+
+    const failedCount = statusMap.failed;
+    const health = totalExecutions > 0 ? ((totalExecutions - failedCount) / totalExecutions) * 100 : 100;
 
     res.json({
       totalExecutions,
-      completedExecutions,
-      pendingApprovals,
-      failedExecutions,
-      avgCompletionTimeMs: avgTimeMs,
+      completedExecutions: statusMap.completed,
+      pendingApprovals: statusMap.waiting,
+      failedExecutions: failedCount,
+      avgCompletionTimeMs: stats.avgCompletionTime[0]?.avgTime || 0,
       systemHealth: health.toFixed(2),
       activeUsers,
-      requestsByDepartment: Object.entries(deptStats).map(([name, count]) => ({ name, count })),
-      statusBreakdown: statusStats
+      requestsByDepartment: stats.deptStats.map(d => ({ name: d._id, count: d.count })),
+      statusBreakdown: statusMap
     });
   } catch (error) {
     next(error);
